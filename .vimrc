@@ -105,6 +105,9 @@
 
   let g:SuperTabDefaultCompletionType = "context"
 
+  " Snippets
+    let g:snippets_dir = "~/.vim/snippets"
+
  " Ctags {
     set tags+=./tags
     au BufRead,BufNewFile *.rb silent! call ReadCTags()

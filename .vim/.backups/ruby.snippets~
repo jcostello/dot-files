@@ -3,13 +3,11 @@
 ########################################
 
 # encoding for Ruby 1.9
-snippet     testloco
-abbr        tl
-options     head
-  {1:loco}
-
 snippet enc
 	# encoding: utf-8
+
+snippet Loco
+	YUO ARE LOCOWW
 
 # #!/usr/bin/env ruby
 snippet #!
