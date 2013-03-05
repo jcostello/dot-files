@@ -1,0 +1,112 @@
+- content_for :head do
+  %link{ rel: "stylesheet", href: "http://fonts.googleapis.com/css?family=Open+Sans:400,300,600" }
+  = render 'head_content', restaurant: @restaurant
+
+.content.restaurant-profile
+  .image-holder-container
+    = image_tag "backgrounds/fade.png", :class => "fade"
+    = image_tag @restaurant.default_photo_path(:desktop_header), :class => "image-holder"
+
+  .container{itemscope: true, itemtype: "http://schema.org/LocalBusiness"}
+    .row.sub-header
+      .span12.main-block
+
+        .restaurant-meta
+          %h1{itemprop: "name"}= @restaurant.name
+          .clearfix
+          .cuisines
+            %a{:href => filtered_search_path(:zone => @restaurant.zone)}
+              %span= @restaurant.zone.name
+            %span.separator /
+            %a{:href => filtered_search_path(:cuisine => @restaurant.default_cuisine)}
+              %span= @restaurant.default_cuisine.name
+          .clearfix
+          - if @restaurant.rated?
+            .stars-container{itemscope: true, itemprop: "aggregateRating",
+                itemtype: "http://schema.org/AggregateRating" }
+              .stars
+                .real-stars{class: @restaurant.star_class}
+                .meta{itemprop: "ratingValue", content: "#{@restaurant.percent_of_positive_reviews/20.0}"}
+              %span.total-rating
+                %a{:href => "#commments"}
+                  %span{itemprop: "reviewCount"}= @restaurant.completed_reviews_count
+                  = t 'reviews_count', count: @restaurant.completed_reviews_count
+
+    .row
+      .span8
+        - if @restaurant.take_reservations?
+          = render "inactive_restaurant", restaurant: @restaurant
+        - else
+          = render "new_reservation_widget", restaurant: @restaurant, availability: @availability
+
+        = render "galicia_disclaimer" if galicia_disclaimer?(@restaurant)
+
+        - if @restaurant.available_special_offers.any?
+          = render "special_offers", special_offers: @restaurant.available_special_offers
+
+        = render "breadcrumb", restaurant: @restaurant
+
+        .items-container
+          .gallery
+            %span.zoom
+            %ul
+              - @restaurant.photos.limit(5).each do |rp|
+                %li
+                  %a{:href => "#"}
+                    = image_tag rp.photo.best.url, :width => 300, :alt => "photo"
+
+          .textbox
+            = simple_format(@restaurant.description, itemprop: "description")
+
+        - if @restaurant.positive_reviews_count > 0
+          #commments.section.recomendation.row
+            .title-box.span8
+              %h2= t '.recommended_by', name: @restaurant.name, count: @restaurant.positive_reviews_count
+            %ul.photos
+              - users_who_recommend(@restaurant).each do |user|
+                %li
+                  %span{style: "background-image: url(#{image_path(user.avatar_url)})", title: display_user_name(user)}
+
+          - unless @restaurant.reviews_with_comments.empty?
+            .section.comments
+              %h2= t '.reviews_title', name: @restaurant.name
+              %ul
+                - @restaurant.reviews_with_comments.limit(40).each do |review|
+                  = render 'review', review: review
+
+      = render 'sidebar', restaurant: @restaurant
+
+      / nearby restaurants
+      - unless @restaurant.nearby_restaurants.empty?
+        .restaurants-listing.span12
+          = render 'shared/tabbed_list', restaurants: { nearby_restaurants: @nearby_restaurants }, zone: @restaurant.zone
+
+= render 'shared/javascripts/abril_id' if landing_source == 'veja'
+
+= content_for :local_js do
+
+  :javascript
+
+    (function() {
+
+      var options = {
+        restaurant_id:       #{@restaurant.id},
+        reservation_info:    #{@restaurant.reservation_info.to_json},
+        restaurant_location: #{@restaurant.lat_long.to_json},
+        reservation_params:  #{current_reservation_params.to_json},
+        photo_gallery:       #{@restaurant.photos.map { |rp| rp.photo.best.url }.to_json},
+        contact_phone:      '#{@restaurant.region.phone}',
+        restaurant_campaign: #{@restaurant.current_campaign.try(:id).to_json}
+      }
+
+      if(#{!!@availability}) {
+        options['reservation_availability'] = #{@availability.to_json};
+      }
+
+      Redo.RestaurantPage.init(options);
+    })();
+
+  %script{id: "3rd-step-template", type: "text/template"}
+    = render "checkout", restaurant: @restaurant, use_veja_login: landing_source == 'veja'
+
+  = render 'horizon'

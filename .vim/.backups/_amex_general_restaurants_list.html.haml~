@@ -1,0 +1,31 @@
+- restaurants.each do |restaurant|
+  .other-restaurant.clearfix
+    .description
+      .header
+        .subtitle
+          %p.location
+            = restaurant.zone.name if restaurant.zone
+          %p.food-type
+            = restaurant.cuisines.first.name
+        .title
+          %h3.name= restaurant.name
+      %p 
+        = restaurant.description
+      %p 
+      = link_to "Ver en mapa", "#detalle", class: 'view-map general-map', 'data-restaurantid' => restaurant.id, lat: restaurant.lat_long[0], long: restaurant.lat_long[1]
+      - if restaurant.take_reservations?
+        = link_to "Reservar", "#widget", class: 'btn general-reservation', 'data-restaurantid' => restaurant.id
+      - else
+        .phone.centurion
+          %p.text Para hacer su reserva en este restaurante por favor comuníquese con Centurion Concierge Services todos los días, las 24 horas.
+          %p.number 0810-888-CENT (2368) 
+          %p.option Opción 2
+        .phone.platinum
+          %p.text Para hacer su reserva en este restaurante por favor comuníquese con Platinum Concierge todos los días, las 24 horas.
+          %p.number 4310-3636 
+          %p.option Opción 3
+          %br
+          %p.number 0800-888-3636 
+          %p.option Desde el interior
+    .image
+      = image_tag restaurant.default_photo_path(:portrait1)

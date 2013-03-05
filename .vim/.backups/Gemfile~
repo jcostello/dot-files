@@ -1,0 +1,98 @@
+# -*- mode: ruby -*-
+
+source 'http://rubygems.org'
+
+gem 'rails', '= 3.2.11'
+
+
+gem 'r_core', git: 'git@github.com:restorando/engines', branch: 'feature/event-publishing'
+gem 'clock',  git: 'git@github.com:restorando/engines', branch: 'feature/event-publishing'
+gem 'rules',  git: 'git@github.com:restorando/engines', branch: 'feature/event-publishing'
+
+gem 'echelon', git: 'git@github.com:restorando/echelon-ruby', branch: 'master'
+
+git 'git@github.com:restorando/rebs', glob: 'engines/*/*.gemspec', branch: 'master' do
+  gem 'rebs'
+end
+
+gem 'redo', path: 'engines/redo'
+
+gem 'mysql2'
+
+# Gems used only for assets and not required
+# in production environments by default.
+group :assets do
+  gem 'sass-rails', '~> 3.2.3'
+  gem 'coffee-rails', '~> 3.2.1'
+  gem 'uglifier', '>= 1.0.3'
+  gem 'compass-rails'
+  gem 'ruby-haml-js'
+end
+gem 'turbo-sprockets-rails3', '~> 0.3.0'
+
+gem 'jquery-rails'
+gem 'i18n-js', "2.0.1"
+gem 'yajl-ruby'
+gem "will_paginate", "~> 3.0"
+gem 'friendly_id', "~> 4.0.9"
+gem 'i18n_routing'
+gem "high_voltage"
+gem "sort_alphabetical"
+gem "sendgrid-rails", "~> 2.0"
+
+gem 'haml'
+gem 'coffee-filter'
+gem 'hpricot'
+gem 'premailer-rails3'
+
+gem 'multi_json', '1.5.1'
+gem 'grape'
+gem 'rack-contrib'
+gem 'rack-cors'
+
+gem 'airbrake', '= 3.1.6'
+gem 'capistrano'
+gem 'newrelic_rpm'
+gem 'googlestaticmap'
+
+group :production, :staging do
+  gem 'unicorn'
+end
+
+group :test do
+  gem 'database_cleaner'
+  gem 'factory_girl_rails', '~> 1.7' # using old version for compatibility, must update to version 4
+  gem 'forgery'
+  gem 'shoulda-matchers'
+  gem 'capybara'
+  gem 'launchy'
+  gem 'vcr'
+  gem 'fakeweb'
+  gem 'resque-mock'
+end
+
+group :development do
+  gem 'localtunnel'
+  gem 'hipchat'
+  gem 'capistrano_colors'
+  gem 'net-scp'
+
+  # These won't work on linux
+  #gem 'rb-fsevent'
+  #gem 'growl'
+end
+
+group :development, :staging do
+  gem 'aws-s3'
+end
+
+group :development, :test do
+  gem 'konacha'
+  gem 'haml_coffee_assets'
+  gem 'debugger', :require => nil
+  gem 'rspec-rails'
+  gem 'guard-rspec'
+  gem 'spork'
+  gem 'pry'
+  gem 'thin'
+end

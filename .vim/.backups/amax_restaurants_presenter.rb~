@@ -1,0 +1,9 @@
+class AmaxRestaurantsPresenter
+  attr_accessor :restaurants
+
+  IDS = [2, 3, 4]
+
+  def initialize
+    @resturants = Redo::Restaurant.find(IDS)
+  end
+end

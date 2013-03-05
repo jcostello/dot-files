@@ -48,6 +48,7 @@
     " Setting up the directories {
         set backup                      " backups are nice ...
         set backupdir=~/.vim/.backups
+        set directory=~/.vim/.swap/
         if has('persistent_undo')
             set undofile                "so is persistent undo ...
             set undodir=~/.vim/.undo
@@ -84,13 +85,9 @@
   " required
   Bundle 'gmarik/vundle' 
 
-  " vim-snipmate dependencies
-    Bundle "MarcWeber/vim-addon-mw-utils"
-    Bundle "tomtom/tlib_vim"
-  " vim-snipmate
-    Bundle "garbas/vim-snipmate"
-
-  Bundle "ervandew/supertab"
+  Bundle 'Shougo/neocomplcache.git'
+  Bundle 'Shougo/neosnippet.git'
+  Bundle 'janx/vim-rubytest'
 
 
 " END VUNDLE
@@ -103,11 +100,17 @@
 " Plugins {
   execute pathogen#infect()
 
-  let g:SuperTabDefaultCompletionType = "context"
+  let g:neocomplcache_enable_at_startup = 1
+  let g:neosnippet#snippets_directory='~/.vim/snippets'
+  let g:neosnippet#enable_snipmate_compatibility = 1
 
-  " Snippets
-    let snipMate['snippet_dirs'] = "~/.vim/snippets"
+  
+  " For snippet_complete marker.
+  if has('conceal')
+    set conceallevel=2 concealcursor=i
+  endif"
 
+  
  " Ctags {
     set tags+=./tags
     au BufRead,BufNewFile *.rb silent! call ReadCTags()
@@ -120,6 +123,7 @@
 
     function! CtagsUpdate()
       :silent !bash ~/.vim/tags.sh
+      :redraw!
     endfunction
   " }
 
@@ -140,3 +144,18 @@
       \ },
       \ 'fallback': 'find %s -type f'
       \ }
+
+  """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+  " MAPPINGS
+
+  " Plugin key-mappings.
+  imap <C-k>     <Plug>(neosnippet_expand_or_jump)
+  smap <C-k>     <Plug>(neosnippet_expand_or_jump)
+  
+  " SuperTab like snippets behavior.
+  imap <expr><TAB> neosnippet#expandable_or_jumpable() ? "\<Plug>(neosnippet_expand_or_jump)" : pumvisible() ? "\<C-n>" : "\<TAB>"
+  smap <expr><TAB> neosnippet#expandable_or_jumpable() ? "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
+
+  map <C>; <Plug>RubyTestRun
+  map <C>' <Plug>RubyFileRun
+  map <Leader>/ <Plug>RubyTestRunLast

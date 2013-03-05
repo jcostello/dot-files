@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:og="http://ogp.me/ns#" xmlns:fb="http://www.facebook.com/2008/fbml">
+<!--[if lt IE 7 ]> <html class="ie6"> <![endif]-->
+<!--[if IE 7 ]>    <html class="ie7"> <![endif]-->
+<!--[if IE 8 ]>    <html class="ie8"> <![endif]-->
+<!--[if IE 9 ]>    <html class="ie9"> <![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--> <html class="no-js"> <!--<![endif]-->
+<head>
+  <title>Restorando.com - Reserve Ahora</title>
+  <%= stylesheet_link_tag "partners-widget" %>
+  <%= stylesheet_link_tag "veja-partnership" %>
+</head>
+<body class="veja">
+  <div class="redo-widget-container">
+    <div class="redo-widget">
+      <div class="calendar-wrapper reservation-widget">
+        <div class="padding-container">
+          <div class="restaurant-data">
+            <h2 class="callto-action">Reserve su mesa</h2>
+            <%= image_tag "widget-logo.png", alt: "Restorando.com" %>
+            <span class="restaurant-name"><%= @restaurant.name %></span>
+          </div>
+
+          <%= render partial: "widget_body_vertical_veja" %>
+
+        </div> <!-- end padding-container -->
+      </div> <!-- end calendar-wrapper -->
+    </div> <!-- end redo-widget -->
+  </div> <!-- end redo-widget-container -->
+
+
+  <%= javascript_include_tag "partners-widget" %>
+
+  <script type="text/javascript">
+    I18n.defaultLocale = "<%= @locale %>";
+    I18n.locale = "<%= @locale  %>";
+
+    $.tools.dateinput.localize('i18n', {
+      months:      I18n.t("date.month_names").join(',').substr(1),
+      shortMonths: I18n.t("date.abbr_month_names").join(',').substr(1),
+      days:        I18n.t("date.day_names").join(','),
+      shortDays:   I18n.t("date.abbr_day_names").join(',')
+    });
+  </script>
+
+  <script type="text/javascript">
+    var widget = new Redo.PartnersWidget("#restorando-widget", {
+      type: "vertical",
+      restaurant_id: "<%= @restaurant.slug %>",
+      restaurant_country: "<%= @restaurant.country %>",
+      restaurant_region: "<%= @restaurant.region %>",
+      contact_phone: "<%= @restaurant.region.phone %>",
+      referrer: "<%= @referrer %>",
+      origin: "<%= @origin %>",
+      reservation_min_diners: <%= @restaurant.reservation_info[:reservation_min_diners] %>,
+      reservation_max_diners: <%= @restaurant.reservation_info[:reservation_max_diners] %>,
+      unavailable_dates: <%= raw @restaurant.reservation_info[:unavailable_dates].to_json %>
+    });
+  </script>
+</body>
+</html>

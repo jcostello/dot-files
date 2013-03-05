@@ -1,0 +1,16 @@
+#widget-vertical
+
+= javascript_include_tag "redo_partners_widget"
+
+:javascript
+  RedoPartnersWidget.init({
+    type: "vertical",
+    widget_id: "amex_vertical",
+    el: "widget-vertical",
+    restaurant_id: "#{@restaurant.id}",
+    partner_id: "amex",
+    auto: false,
+    width: 158,
+    host: "localhost:3001",
+    height: 366
+  });

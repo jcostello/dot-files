@@ -1,0 +1,29 @@
+.restaurants-container.clearfix
+  %a.prev
+    HOLA
+    = image_tag('landings/amex/prev.png')
+  .slider-container
+    //restaurant
+    - restaurants.each do |restaurant|
+      .restaurant.clearfix
+        .image
+          = image_tag restaurant.default_photo_path(:portrait1)
+        %h3.name 
+          = restaurant.name
+        %p.menu-type
+          = "#{restaurant.zone.name} / #{restaurant.cuisines.first.name}"
+        %p.address
+          = restaurant.address
+        .links 
+          = link_to "Reservar", "#detalle", class: 'btn featured-reservation-link', 'data-restaurantid' => restaurant.id, lat: restaurant.lat_long[0], long: restaurant.lat_long[1]
+          = link_to "Mas información", "#detalle", class: 'more-info featured-reservation-link', 'data-restaurantid' => restaurant.id, lat: restaurant.lat_long[0], long: restaurant.lat_long[1]
+    //end restaurant
+  %a.next
+    = image_tag('landings/amex/next.png')
+  .indicator.clearfix
+    %ul
+      %li.first.active
+      %li.second
+      %li.third
+      %li.third
+

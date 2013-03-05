@@ -1,0 +1,258 @@
+require "spec_helper"
+
+module Redo
+  describe ReservationService do
+    let(:user_params) do
+      { first_name: "Daniel",
+        last_name: "Lopez",
+        email: "dani@gmail.com",
+        phone: "1231232133" }
+    end
+    let(:reservation_params) do
+      { restaurant_id: FactoryGirl.create(:redo_restaurant).id,
+        date: "2012-06-08",
+        time: "21:30",
+        diners: 4,
+        origin: "rezsite",
+        referrer: "http://www.restorando.com" }
+    end
+    let(:restaurant_repo) { stub.as_null_object }
+    let(:user_repo) { stub.as_null_object }
+
+    describe ".for_user" do
+      context "when user doesnt exist" do
+        it "creates a user with the params passed" do
+          user = Redo::User.new
+          user.should_receive(:save).and_return { true }
+          user_repo.should_receive(:find_or_initialize_by_email).and_return { user }
+
+          service = described_class.for_user(user_params, nil, user_repo)
+
+          service.user.should be === user
+          service.user.first_name.should be == user_params[:first_name]
+          service.user.last_name.should be == user_params[:last_name]
+          service.user.email.should be == user_params[:email]
+          service.user.phone.should be == user_params[:phone]
+        end
+      end
+
+      context "when user exists" do
+        let(:user_attrs) do
+          { id: 12, first_name: "Bernardo", last_name: "Peix",
+            email: user_params[:email], phone: "1231" }
+        end
+        let(:user) do
+          stub_model Redo::User, user_attrs
+        end
+
+        before do
+          user_repo.stub(:find_or_initialize_by_email).and_return { user }
+          user.stub(:save).and_return { true }
+        end
+
+        it "uses the existing one" do
+          service = described_class.for_user(user_params, nil, user_repo)
+
+          service.user.should be === user
+        end
+
+        context "and is registered" do
+          before do
+            user.stub(:registered?).and_return { true }
+          end
+
+          it "doesnt change its original attributes" do
+            service = described_class.for_user(user_params, nil, user_repo)
+
+            service.user.first_name.should be == user_attrs[:first_name]
+            service.user.last_name.should be == user_attrs[:last_name]
+            service.user.email.should be == user_attrs[:email]
+          end
+
+          it "changes the phone number if not set" do
+            user.phone = nil
+
+            service = described_class.for_user(user_params, nil, user_repo)
+
+            service.user.phone.should be == user_params[:phone]
+          end
+
+          context "and logged in" do
+            it "uses the passed logged in user" do
+              logged_in_user = stub.as_null_object
+              service = described_class.for_user(user_params, logged_in_user,
+                                                 user_repo)
+
+              service.user.should be === logged_in_user
+            end
+          end
+        end
+
+        context "and is not registered" do
+          before do
+            user.stub(:registered?).and_return { false }
+            user.should_receive(:save).and_return { true }
+          end
+
+          it "replaces the attribute values with the user params" do
+            service = described_class.for_user(user_params, nil, user_repo)
+
+            service.user.first_name.should be == user_params[:first_name]
+            service.user.last_name.should be == user_params[:last_name]
+          end
+        end
+      end
+    end
+
+    context "with a pending reservation between 4 hours ago and from now" do
+      it "returns a duplicated response when check_duplicated" do
+        user = FactoryGirl.create(:user)
+        restaurant = stub.as_null_object
+        reservation = FactoryGirl.create(:reservation)
+        Redo::Reservation.stub(:pending_by).and_return([reservation])
+        Redo::Restaurant.stub(:find).and_return { restaurant }
+
+        service = described_class.new(user, restaurant_repo)
+        resp = service.call(reservation_params, check_duplicated: true)
+        resp.should be_duplicated_reservation
+      end
+
+      it "not returns a duplicated response when check_duplicated is false" do
+        user = FactoryGirl.create(:user)
+        restaurant = stub.as_null_object
+        reservation = stub.as_null_object
+        Redo::Reservation.stub(:pending_by).and_return(reservation)
+        Redo::Restaurant.stub(:find).and_return { restaurant }
+
+        service = described_class.new(user, restaurant_repo)
+        resp = service.call(reservation_params, check_duplicated: false)
+        resp.should_not be_duplicated_reservation
+      end
+    end
+
+    it "builds a reservation from params" do
+      user = FactoryGirl.create(:user)
+      restaurant = stub.as_null_object
+      restaurant_repo.stub(:find).and_return { restaurant }
+
+      service = described_class.new(user, restaurant_repo)
+      resp = service.call(reservation_params)
+
+      resp.reservation.date.to_s.should be == reservation_params[:date]
+      resp.reservation.diners.should be == reservation_params[:diners]
+      resp.reservation.time.should be == reservation_params[:time]
+      resp.reservation.origin.should be == 'rezsite'
+      resp.reservation.user.should be  === user
+      resp.reservation.restaurant.should be === restaurant
+    end
+
+    it "saves the reservation when user data is valid" do
+      user = FactoryGirl.create(:user)
+      user.stub(:valid?).and_return { true }
+      reservation = stub.as_null_object
+      Legacy::Reservation.stub(:new).and_return { reservation }
+      reservation.should_receive(:save).once
+
+      service = described_class.new(user, restaurant_repo)
+      service.call(reservation_params)
+    end
+
+    it "does not save the reservation when user data is invalid" do
+      user = FactoryGirl.create(:user)
+      user.stub(:valid?).and_return { false }
+      reservation = stub.as_null_object
+      Legacy::Reservation.stub(:new).and_return { reservation }
+      reservation.should_receive(:save).never
+
+      service = described_class.new(user, restaurant_repo)
+      service.call(reservation_params)
+    end
+
+    it "should not modify the reservation params object" do
+      user = FactoryGirl.create(:user)
+      user.stub(:valid?).and_return { true }
+      reservation = stub.as_null_object
+      Legacy::Reservation.stub(:new).and_return { reservation }
+
+      expected_params = reservation_params.dup
+
+      service = described_class.new(user, restaurant_repo)
+      service.call(reservation_params)
+
+      reservation_params.should be == expected_params
+    end
+
+    it "should return a response object with user and reservation" do
+      user = FactoryGirl.create(:user)
+      reservation = stub.as_null_object
+      Legacy::Reservation.stub(:new).and_return { reservation }
+
+      service = described_class.new(user, restaurant_repo)
+      resp = service.call(reservation_params)
+      resp.should be_kind_of described_class::Response
+      resp.user.should be == user
+      resp.reservation.should be == reservation
+    end
+
+    describe "Response" do
+      let(:reservation) { double("Legacy::Reservation") }
+      let(:user) { double("User") }
+      let(:response) { described_class::Response.new(user, reservation) }
+
+      describe "#success?" do
+        it "returns true when the reservation is persisted" do
+          reservation.stub(:persisted?).and_return { true }
+          reservation.stub(:errors).and_return { [] }
+          response.success?.should be_true
+        end
+
+        it "returns false when the reservation is not persisted" do
+          reservation.stub(:persisted?).and_return { false }
+          reservation.stub(:errors).and_return { [] }
+          response.success?.should be_false
+        end
+
+        it "returns false when the reservation has errors" do
+          reservation.stub(:persisted?).and_return { true }
+          reservation.stub(:errors).and_return { ["an error"] }
+          response.success?.should be_false
+        end
+      end
+
+      describe "#errors" do
+        let(:user_errors) { stub.as_null_object }
+        let(:reservation_errors) { stub.as_null_object }
+
+        before do
+          user.stub(:errors).and_return { user_errors }
+          reservation.stub(:errors).and_return { reservation_errors }
+        end
+
+        it "returns user errors if there are any" do
+          user_errors.stub(:any?).and_return { true }
+          response.errors.should be == user_errors
+        end
+
+        it "returns reservation errors when there are no user errors" do
+          user_errors.stub(:any?).and_return { false }
+          response.errors.should be == reservation_errors
+        end
+      end
+    end
+
+    describe "#cancel_and_create" do
+
+      it "cancels the reservation" do
+        user = FactoryGirl.create(:user)
+        restaurant = FactoryGirl.create(:restaurant)
+        reservation = FactoryGirl.create(:reservation, restaurant: restaurant)
+        restaurant_repo.stub(:find).and_return { restaurant }
+
+        service = described_class.new(user, restaurant_repo)
+        service.cancel_and_create(reservation_params.merge({ id: reservation.id }))
+        reservation.reload
+        reservation.should be_canceled
+      end
+    end
+  end
+end

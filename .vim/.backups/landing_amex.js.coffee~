@@ -1,0 +1,80 @@
+class LandingAmex
+  
+  constructor: ->
+    @ui = 
+      generalRestaurantsReservationLinks: $('.general-reservation-link')
+      generalRestaurantsMapLinks: $('.general-map-link')
+      featuredRestaurantReservationLinks: $('.featured-reservation-link')
+    
+    @map_opts =
+      action: 'init'
+      options:
+        navigationControl: true
+        mapTypeControl: false
+        scrollwheel: false
+        streetViewControl: false
+
+    @marker_opts =
+      action: 'addMarker'
+      map:
+        center: true
+        zoom: 14
+
+    debugger
+
+    @setupGeneralRestaurantsReservationLinks()
+    @setupGeneralRestaurantsMapLinks()
+    @setupFeaturedReservationLinks()
+    @setupSearchBar()
+
+  setupGeneralRestaurantsReservationLinks: =>
+    $.each @ui.generalRestaurantsReservationLinks, (index, value) =>
+      @setupModalLink(value, (id, lat, long) => 
+        @openModal("general_restaurant_reservation", lat, long, id: id))
+
+  setupGeneralRestaurantsMapLinks: =>
+    $.each @ui.generalRestaurantsMapLinks, (index, value) =>
+      @setupModalLink(value, (id, lat, long) => 
+        @openModal("general_restaurant_map", lat, long, id: id))
+
+  setupFeaturedReservationLinks: =>
+    $.each @ui.featuredRestaurantReservationLinks, (index, value) =>
+      @setupModalLink(value, (id, lat, long) => 
+        @openModal("featured_restaurant_reservation", lat, long, id: id))
+
+  setupModalLink: (value, clickBehavior) =>
+    id = $(value).attr('data-restaurantid')
+    lat = $(value).attr('lat')
+    long = $(value).attr('long')
+    $(value).on "click", ->
+      clickBehavior(id, lat, long)
+
+  setupSearchBar: =>
+    filters = $(".search-filter")
+    $.each filters, (index, value) =>
+      $(value).on "change", (event) ->
+        event.currentTarget.parentElement.submit()
+
+  openGeneralMapModal: (id, lat, long) =>
+    @openModal("general_restaurant_map", lat, long, id: id)
+
+  openModal: (url, lat, long, params) =>
+    $.ajax
+      url: url
+      type: "get"
+      data:
+        params
+      success: (data) =>
+        @openFacyBoxModal(data)
+        @generateMap(lat, long)
+
+  openFacyBoxModal: (html) =>
+    $.facybox(html)
+
+  generateMap: (lat, long) =>
+    @marker_opts.latLng = [lat, long]
+    $(".map").gmap3(@map_opts, @marker_opts)
+
+# Export classes
+window.Redo ?= {}
+window.Redo.LandingAmex = LandingAmex

@@ -1,0 +1,172 @@
+module Redo
+  class Restaurant < RCore::Restaurant
+    include RCore::EmitEvents
+    include Redo::RestaurantFeatures
+
+    serialize :features, Hash
+
+    # Associations
+    has_and_belongs_to_many :cuisines, :join_table => :redo_restaurants_cuisines
+    has_and_belongs_to_many :suitable_for_tags, :join_table => :redo_restaurants_suitable_for_tags
+    has_many :photos, class_name: 'RestaurantPhoto'
+    has_many :reviews
+    has_many :special_offers, class_name: 'Redo::RestaurantSpecialOffer', dependent: :destroy
+    has_many :tips, class_name: 'Redo::RestaurantTip', dependent: :destroy
+
+    accepts_nested_attributes_for :special_offers, allow_destroy: true
+    accepts_nested_attributes_for :tips,           allow_destroy: true
+
+    # Validations
+    with_options :if => :published? do |rez|
+      rez.validates_presence_of :zone_id
+      rez.validates_presence_of :slug
+      rez.validates_presence_of :address
+      rez.validate :has_cuisine, :on => :update
+      rez.validate :has_photo, :on => :update
+    end
+
+    # Callbacks
+    after_destroy :trigger_destroy_event
+    after_update  :trigger_update_event
+    after_touch   :trigger_update_event
+
+    # Scopes
+    def self.allow_marketing
+      where(allows_marketing: true)
+    end
+
+    def self.active
+      published.where(status: STATUS_ACTIVE)
+    end
+
+    def publish!
+      self.published = true
+      transaction do
+        save_result = save!
+        self.class.audit_class.log_change(self, from: 'unpublished', to: 'published', context: audit_context)
+        safe_trigger 'publish.restaurant', self
+        save_result
+      end
+    end
+
+    def unpublish!
+      self.published = false
+      transaction do
+        save_result = save!
+        self.class.audit_class.log_change(self, from: 'published', to: 'unpublished', context: audit_context)
+        safe_trigger 'unpublish.restaurant', self
+        save_result
+      end
+    end
+
+    def default_photo_path(version = :square)
+      default_photo.send(version).url
+    end
+
+    def default_photo
+      (photos.first || photos.build).photo
+    end
+
+    def reservation_info
+      wanted_attributes = %w(name meals unavailable_dates
+                             reservation_min_diners reservation_max_diners)
+      @reservation_info ||= Hash[wanted_attributes.map{ |a| [a.to_sym, public_send(a)] }]
+      @reservation_info[:campaigns] = available_campaigns
+      @reservation_info
+    end
+
+    def reviews_with_comments
+      reviews.order("positive DESC, id DESC")
+             .completed.where("body IS NOT NULL").includes(user: :customer)
+    end
+
+    def percent_of_positive_reviews
+      return 0 if (total = completed_reviews.count) == 0
+      positive = positive_reviews.count
+      ((positive * 100) / total).to_i
+    end
+
+    def positive_reviews
+      reviews.completed.positive
+    end
+
+    def completed_reviews
+      reviews.completed
+    end
+
+    def unavailable_dates
+      current_date_statuses.each_with_object([]) do |date_status, list|
+        list << date_status.date.to_s if date_status.disabled?
+      end
+    end
+
+    def completed_reviews_count
+      completed_reviews.count
+    end
+
+    def positive_reviews_count
+      positive_reviews.count
+    end
+
+    def available_special_offers(date = nil)
+      date ||= (Time.find_zone(timezone) || Date).today
+      special_offers.availables(date)
+    end
+
+<<<<<<< HEAD
+    def take_reservations?
+      !self.inactive? && !self.prospect?
+    end
+
+=======
+>>>>>>> deb3850fc9b0551da63c28862bf41535de486840
+    def cuisine_names
+      self.cuisines.map(&:name)
+    end
+
+<<<<<<< HEAD
+=======
+    def take_reservations?
+      !self.inactive?
+    end
+
+>>>>>>> deb3850fc9b0551da63c28862bf41535de486840
+    private
+
+    # Handle initial pseudo status "unpublished"
+    def audit_initial_status
+      super
+      self.class.audit_class.log_creation(self, to: 'unpublished', context: audit_context)
+    end
+
+    def has_cuisine
+      if self.cuisines.count < 1
+        errors.add(:cuisines, "can't be blank")
+      end
+    end
+
+    def has_photo
+      if self.photos.count < 1
+        errors.add(:photos, "must have at least one photo")
+      end
+    end
+
+    def trigger_destroy_event
+      safe_trigger 'destroy.restaurant', self
+    end
+
+    def trigger_update_event
+      if published? && !published_changed?
+        restaurant = self.clone.tap { |r| r.readonly! }
+        safe_trigger 'update.restaurant', restaurant
+      end
+    end
+
+    def safe_trigger(*args)
+      trigger(*args)
+    rescue EventEmitter::TriggerException
+      raise ActiveRecord::Rollback
+    end
+
+  end
+end

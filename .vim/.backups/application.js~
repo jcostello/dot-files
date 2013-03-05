@@ -1,0 +1,22 @@
+//= require jquery
+//= require jquery_ujs
+//= require jquery.placehold
+//= require jquery.validate
+//= require jquery.cookie
+//= require jquery.mask
+//= require jquery.parsequery
+//= require jquery-scrolltofixed
+//= require spin
+//= require json2
+//= require event_emitter
+//= require facybox
+//= require gmap3
+//= require info_box
+//= require jcarousellite
+//= require i18n
+//= require i18n/translations
+//= require_tree ./site
+//= require ./redo-wizard/index
+
+
+//= require facybox-amex

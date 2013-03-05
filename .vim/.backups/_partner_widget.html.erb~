@@ -1,0 +1,46 @@
+  <div class="redo-widget-container">
+    <div class="redo-widget">
+      <div class="calendar-wrapper reservation-widget">
+        <div class="padding-container">
+          <div class="restaurant-data">
+            <%= image_tag "widget-logo.png", alt: "Restorando.com.br" %>
+            <h2 class="callto-action">Reserve Agora</h2>
+            <span class="restaurant-name"><%= @restaurant.name %></span>
+          </div>
+
+          <%= render partial: "widget_body_vertical" %>
+
+        </div> <!-- end padding-container -->
+      </div> <!-- end calendar-wrapper -->
+    </div> <!-- end redo-widget -->
+  </div> <!-- end redo-widget-container -->
+
+
+  <%= javascript_include_tag "partners-widget" %>
+
+  <script type="text/javascript">
+    I18n.defaultLocale = "<%= @locale %>";
+    I18n.locale = "<%= @locale  %>";
+
+    $.tools.dateinput.localize('i18n', {
+      months:      I18n.t("date.month_names").join(',').substr(1),
+      shortMonths: I18n.t("date.abbr_month_names").join(',').substr(1),
+      days:        I18n.t("date.day_names").join(','),
+      shortDays:   I18n.t("date.abbr_day_names").join(',')
+    });
+  </script>
+
+  <script type="text/javascript">
+    var widget = new Redo.PartnersWidget("#restorando-widget", {
+      type: "vertical",
+      restaurant_id: "<%= @restaurant.slug %>",
+      restaurant_country: "<%= @restaurant.country %>",
+      restaurant_region: "<%= @restaurant.region %>",
+      contact_phone: "<%= @restaurant.region.phone %>",
+      referrer: "<%= @referrer %>",
+      origin: "<%= @origin %>",
+      reservation_min_diners: <%= @restaurant.reservation_info[:reservation_min_diners] %>,
+      reservation_max_diners: <%= @restaurant.reservation_info[:reservation_max_diners] %>,
+      unavailable_dates: <%= raw @restaurant.reservation_info[:unavailable_dates].to_json %>
+    });
+  </script>

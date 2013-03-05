@@ -1,0 +1,343 @@
+.cinema-banner
+  display: none
+
+header
+  .right-links, #region
+    display: none
+  .row
+    background: url("landings/amex/amex-logo.png") no-repeat right center
+
+* p
+  line-height: 1.5em !important
+
+//custom styles by card
+
+//centurion
+body.centurion
+  .main-container
+    background: #394046
+    .list-container
+      .title
+        background: image-url("landings/amex/centurion-title-separator.png") no-repeat bottom center
+        h2
+          color: #757D82
+// modal centurion
+.centurion .phone.centurion, .platinum .phone.platinum
+  width: 400px
+  .number
+    font-size: 25px
+  .option
+    font-size: 16px
+
+// platinum
+body.platinum
+  .main-container
+    background: #222222
+  .description
+    h1
+      color: #CCCCCC
+  .list-container
+    .title
+      background: image-url("landings/amex/platinum-title-separator.png") no-repeat bottom center
+      h2
+        color: #CCCCCC
+// modal platinum
+.modal .phone.centurion, .modal .phone.platinum
+  width: 190px
+  .number
+    font-size: 18px
+  .option
+    font-size: 14px
+
+//header
+.top
+  padding: 30px 0
+  margin-bottom: 20px
+  box-shadow: 0px -1px 11px #080B0E inset
+  background:  image-url("landings/amex/top-light.png") no-repeat center bottom, image-url("landings/amex/centurion-top-background.png")
+  
+  .card-image
+    width: 160px
+    float: left
+    img
+      width: 85%
+      margin-left: 5%
+  .description
+    width: 640px
+    margin-left: 30px
+    float: left
+    h1
+      margin: 6px 0
+    p
+      color: #DDDDDD
+      font-size: 20px
+
+// main restaurants list
+.list-container
+  margin: 30px 0
+  .title
+    text-align: center
+    padding-bottom: 8px
+    h2
+      text-transform: uppercase
+      margin: 0
+  .restaurants-container
+    padding-bottom: 15px
+    margin-top: 30px
+    .prev, .next
+      width: 127px
+      float: left
+      margin-top: 40px
+      &:hover
+        opacity: .2
+    .next
+      text-align: right
+    .slider-container
+      width: 734px
+      float: left
+    .restaurant
+      background: #FFFFFF
+      width: 202px
+      float: left
+      border: 1px solid #AAAAAA
+      padding: 12px
+      box-shadow: 0 1px 3px rgba(34,25,25,0.4)
+      margin: 0 25px 0 0
+      img
+        width: 100%
+      .name
+        margin: 8px 0 5px
+        font-size: 1.3em
+        line-height: 1.3em
+        height: 48px
+      .menu-type, .address
+        font-size: 11px
+        line-height: 1.1429 !important
+        color: #555555
+        margin: 0
+        padding: 2px 0
+      .links
+        margin-top: 14px 
+        .btn
+          +master-button(#649C50, #FFFFFF)
+          padding: 10px 20px
+        .more-info
+          color: #C30000
+          font-size: .8em
+          margin-left: 10px
+      //&:nth-child(4n)
+      &:nth-child(3n)
+        margin: 0
+    .indicator
+      clear: both
+      text-align: center
+      padding-top: 15px
+      ul
+        display: inline-block
+        margin: 0
+        li
+          float: left
+          width: 15px
+          height: 15px
+          background: #757D82
+          margin: 0 5px
+          border-radius: 8px
+          &.active
+            background: #242729
+//widget container
+.search-container
+  background: #FFFFFF image-url('landings/amex/shadow.png') repeat-x top
+  padding: 40px 0 0
+  p
+    font-size: 20px
+    color: #394046
+    margin: 0 0 20px
+  .form
+    background: #394046
+    padding: 20px
+    .search
+      float: left
+      .search-box
+        width: 300px
+      .search-button
+        +master-button(#FBD44E, #1C1C1C)
+        padding: 10px 15px
+        margin-top: -2px
+    .filters
+      float: right
+      span
+        float: left
+        color: #FFFFFF
+        line-height: 30px
+        margin-right: 15px
+      .cocina, .barrio
+        width: 100px
+      .cocina
+        margin-right: 15px
+
+
+
+//secondary restaurants list
+.others-list-container
+  background: #FFFFFF
+  padding: 30px 0
+  .other-restaurant
+    border-bottom: 1px solid #CCCCCC
+    padding-bottom: 25px
+    margin-bottom: 25px
+    &:last-child
+      background: none
+      border-bottom: none
+    .description
+      width: 600px
+      margin-right: 88px
+      float: left
+      .header
+        .subtitle
+          margin-bottom: 6px
+        .title
+          margin-bottom: 8px
+        .location, .food-type, .name, .price
+          display: inline-block
+          margin: 0
+        .location, .food-type
+          text-transform: uppercase
+        .location
+          font-size: 16px
+          font-weight: bold
+        .food-type
+          font-size: 12px
+        .name
+          color: #C30000
+          font-size: 28px
+        .price
+          color: orange
+          font-size: 12px
+      p
+        color: #444444
+      .view-map
+        background: image-url('landings/amex/map-icon.png') no-repeat bottom left
+        padding: 10px 25px 5px
+        box-shadow: none !important
+        border: none
+        text-transform: uppercase
+        font-weight: bold
+        font-size: 12px
+        color: #666
+        display: block
+        margin-bottom: 20px
+      .btn
+        +master-button(#649C50, #fff)
+        padding: 10px 30px
+      
+    .image
+      width: 300px
+      float: left
+      margin-top: 50px
+      img
+        width: 100%
+
+//phone numbers by card
+.phone
+  display: none
+  .text
+    color: #666666
+    font-size: 12px
+    margin: 0 0 5px
+  .number, .option
+    color: #649C50 !important
+    display: inline-block
+  .number
+    font-weight: bold
+    margin: 0
+    line-height: 1 !important
+
+.centurion .phone.centurion,.platinum .phone.platinum
+  display: block !important
+
+//legals 
+.legal_call
+  color: inherit !important
+  font-size: .8em
+  vertical-align: top
+.legal
+  margin-top: 4em
+  p
+    line-height: 1.4em
+    color: #666
+    font-size: .8em
+
+.modal
+  .btn
+    +master-button(#649C50, #fff)
+    padding: 10px 20px
+    &.warning
+      +master-button(#C30000, #fff)
+  // modal detalle
+  .name
+    color: #C30000
+    font-size: 28px
+    margin-bottom: 5px
+
+  .detail
+    width: 600px
+    float: left
+    .img
+      width: 250px
+      margin-right: 10px
+      float: left
+      img
+        width: 100%
+    .subtitle
+      margin-bottom: 6px
+      .title
+        margin-bottom: 8px
+      .location, .food-type
+        display: inline-block
+        margin: 0
+      .location, .food-type
+        text-transform: uppercase
+      .location
+        font-size: 16px
+        font-weight: bold
+      .food-type
+        font-size: 12px
+      .price
+        color: orange
+        font-size: 12px
+   
+    .description-text
+      
+    .map
+      width: 600px
+      height: 110px
+      img
+        width: 100%
+
+    .long
+      height: 400px
+
+  .widget
+    width: 200px
+    float: left
+    margin-left: 20px
+    img
+      width: 100%
+    .habeas-data
+      height: 160px
+      margin: 10px 0
+      overflow-y: scroll
+      p
+        font-size: 10px
+        color: #666666
+  .widget-alone
+    width: 200px
+    img
+      width: 100%
+    .habeas-data
+      height: 140px
+      margin: 10px 0
+      overflow-y: scroll
+      p
+        font-size: 10px
+        color: #666666

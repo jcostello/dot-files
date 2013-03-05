@@ -1,0 +1,7 @@
+.inactive-restaurant-msg
+  - reason = restaurant.down_reason.presence || 'default'
+  - raise reason.inspect
+  %h2= t(".titles.#{reason}", restaurant_name: restaurant.name, default: :"restaurants.inactive_restaurant.titles.default")
+  %p= t('.description', region_phone: restaurant.region.phone)
+
+  = render 'recommendations', restaurants: similar_restaurants(restaurant, count: 2)

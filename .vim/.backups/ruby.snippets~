@@ -6,9 +6,6 @@
 snippet enc
 	# encoding: utf-8
 
-snippet Loco
-	YUO ARE LOCOWW
-
 # #!/usr/bin/env ruby
 snippet #!
 	#!/usr/bin/env ruby

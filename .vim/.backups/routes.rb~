@@ -1,0 +1,115 @@
+RedoApp::Application.routes.draw do
+
+  mount RedoApp::InternalApi => "/api/internal"
+
+  match "/robots.txt" => "site#robots"
+  match "/partners/widget/:id" => "partners#widget", :as => "partners_widget"
+
+  # Webhooks
+  match "/webhooks/payment_notifications/:redo_key/moip_nasp" => "payment_notifications#moip_nasp", :via => :post
+
+  ["com", "com.ar", "com.br", "cl", "com.co"].each do |tld|
+    domain = "#{RedoApp.domain_name}.#{tld}"
+    constraints :host => /^#{domain}$/i do
+      root :to => redirect("http://www.#{domain}")
+      match "/*path", :to => redirect { |params, request| "http://www.#{request.host_with_port}#{request.original_fullpath}" }
+    end
+  end
+
+  constraints :host => /restorando\.com$/i do
+    root :to => "home#country_select"
+
+    match "/welcome" => "landings#welcome", as: "landing_welcome"
+    match '/reservations/:id.gif' => 'reservations#link_to_sailthru',
+          as: 'link_reservation_to_sailthru', format: false
+    match "*other_path" => "catchall#handle404"
+  end
+
+
+  match "/restaurantes" => "search#index", :as => "search"
+
+  match "/restaurante/:slug" => "restaurants#show", :as => "restaurant"
+  get   "/restaurante/:slug/checkout_extra_info" => "restaurants#checkout_extra_info"
+  get   "/restaurante/:slug/recommendations" => "restaurants#recommendations"
+
+  match "/personalized_newsletters" => "personalized_newsletters#show"
+
+  root :to => "home#index"
+
+  match "/sign_up" => "users#new", :as => "sign_up"
+  match "/sign_out" => "sessions#destroy", :as => "sign_out"
+
+  scope :path => "users" do
+    resource :password, :except => [:show, :index, :destroy]
+    resource :email_preferences, :except => [:show, :index, :destroy, :create, :new]
+  end
+
+  resources :users, :except => [:new, :show] do
+    get :account, :on => :collection
+    get :validate_email, :on => :collection
+    get :modal_login_form, :on => :collection
+    get :confirmation, :on => :collection
+    get :me, :on => :collection
+  end
+
+  resources :sessions, :only => [:create, :destroy]
+
+  resources :referrals, :only => [:index, :create]
+
+  resources :reservations, :only => [:new, :create, :show] do
+    get :availability, :on => :collection
+    post :begin_payment, :on => :collection
+    get :payment, :on => :collection
+    post :cancel, :on => :member
+  end
+
+  resources :reviews, :only => [:update, :new] do
+    get :thanks, :on => :collection
+    get :thanks2, :on => :collection
+  end
+
+  resources :subscriptions, :only => [:new, :create]
+
+  # sitemaps
+  get "/sitemaps" => "sitemaps#index"
+  get "/sitemaps/restaurants"  => "sitemaps#restaurants"
+  get "/sitemaps/cuisines"     => "sitemaps#cuisines"
+  get "/sitemaps/zones"        => "sitemaps#zones"
+  get "/sitemaps/suitable-for" => "sitemaps#suitable_for"
+  get "/sitemaps/zones-and-cuisines"     => "sitemaps#zones_and_cuisines"
+  get "/sitemaps/zones-and-suitable-for" => "sitemaps#zones_and_suitable_for"
+  get "/sitemaps/cuisines-and-suitable-for" => "sitemaps#cuisines_and_suitable_for"
+
+  # landings
+  match "/clubcaras" => "landings#club_caras", as: "club_caras"
+  match "/landings/veja-magazine" => "landings#veja", defaults: { veja_magazine: true }
+  match "/landings/veja/:cuisine" => "landings#veja"
+  match "/landings/amex" => "landings#amex", as: "landings_amex"
+  match "/landings/amex-platinum" => "landings#amex_platinum", as: "landings_amex_platinum"
+
+  get "/landings/general_restaurant_reservation" => "landings#general_restaurant_reservation"
+  get "/landings/general_restaurant_map" => "landings#general_restaurant_map"
+  get "/landings/featured_restaurant_reservation" => "landings#featured_restaurant_map"
+
+  get "/josimar-melo-recomenda/a-bela-sintra" => "landings#josimar_a_bela_sintra", as: "josimar_a_bela_sintra"
+  get "/josimar-melo-recomenda/santinho" => "landings#josimar_santinho", as: "josimar_santinho"
+  get "/josimar-melo-recomenda/cosi" => "landings#josimar_cosi", as: "josimar_cosi"
+  get "/josimar-melo-recomenda/ici-bistro" => "landings#josimar_ici_bistro", as: "josimar_ici_bistro"
+
+  match "/partners/activities/:country(.:format)" => "partners#activities", as: "partners_feed_activity"
+  match "/partners/restaurants_info/:id" => "partners#activity", as: "publishing_activity"
+
+  match "/pages/:id" => "pages#show", :as => :static, :via => :get, :format => false
+
+
+  # keep this at the bottom
+  match "*browse_path" => "search#index",
+           :constraints => { :path => /^\/restaurantes-/ }
+
+  match "*search_path" => "search#index",
+           :constraints => { :path => /^\/(busqueda|pesquisa)-/ }
+
+  get "/l/:slug" => "search#restaurants_list", as: 'restaurants_list'
+
+  match "*other_path" => "catchall#handle404"
+end

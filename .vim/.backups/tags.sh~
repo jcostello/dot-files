@@ -3,14 +3,14 @@
 
 SRC="${rvm_path}/rubies/${RUBY_VERSION}"
 
-GEMS=`rvm gemdir`/gems
+GEMS=`rvm gemdir`/gems/rails
 
 ctags \
   --exclude=.git \
-  --exclude=./tags \
+  --exclude=tags \
   --exclude=logs \
   --exclude=doc \
   --exclude=*.js \
-  -R -f ./tags $SRC $GEMS
+  -R -f ./tags $SRC $GEMS .
 
 echo "Tags Generated Bitch"

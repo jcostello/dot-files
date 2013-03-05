@@ -1,0 +1,93 @@
+class LandingsController < ApplicationController
+  skip_before_filter :set_region, only: [:welcome, :club_caras]
+
+  def fathers_day
+    render layout: nil
+  end
+
+  def fathers_day_thanks
+    render layout: nil
+  end
+
+  def welcome
+    render layout: nil
+  end
+
+  def club_caras
+    render layout: nil
+  end
+
+  def amex
+    ids = {
+      featured_ids: %w[93 1628 1478],
+      general_ids: %w[565 581 923 276 820 1661 1637 576 311 45 50 105 63 350 275 161 410]
+    }
+
+    @restaurants_presenter = AmexRestaurantsPresenter.new(ids, params[:search])
+    @locale = params[:locale] 
+    @search = @restaurants_presenter.general_restaurants
+    render layout: 'new_application'
+  end
+
+  def amex_platinum
+    ids = {
+      featured_ids: %w[565, 581, 923],
+      general_ids: %w[276 820 1661 1637 576 311 45 50 105 63 350 275 161 410]
+    }
+
+    @restaurants_presenter = AmexRestaurantsPresenter.new(ids, params[:search])
+    @locale = params[:locale] 
+    @search = @restaurants_presenter.general_restaurants
+    render layout: 'new_application'
+  end
+
+  def general_restaurant_reservation
+    @restaurant = Redo::Restaurant.find(params[:id])
+    render :general_restaurant_reservation, :layout => false
+  end
+
+  def general_restaurant_map
+    @restaurant = Redo::Restaurant.find(params[:id])
+    render :general_restaurant_map, :layout => false
+  end
+
+  def featured_restaurant_reservation
+    @restaurant = Redo::Restaurant.find(params[:id])
+    render :featured_restaurant_map, :layout => false
+  end
+
+  def veja
+    cookies[:landing_source] = { value: 'veja', expires: 3.days.from_now }
+
+    # This will be removed a month after deployed
+    ids = {
+      italiana: %w[1660 834 1344 679 756 1178 1702 1977 678 348 2398 2073 657],
+      francesa: %w[665 342 1975 483 459 2005 703 2412],
+      pizzaria: %w[1850 2127 1401 2073 1962 2405 2403 2404 2401 2399 2014 2013 2011],
+      japonesa: %w[1945 804 1968 569]
+    }.stringify_keys
+
+    ids.slice!(params[:cuisine]) unless params[:veja_magazine]
+
+    restaurants = ids.map{|cuisine, ids| [cuisine.capitalize, Redo::Restaurant.published.where(id: ids).shuffle] }
+    @restaurants = Hash[restaurants]
+    @promotions = {
+      drink: [1344, 756, 1977, 665, 1975, 483, 2005, 2412],
+      starter: [2398, 679]
+    }
+
+    @promotions[:all] = @promotions[:drink] + @promotions[:starter]
+
+    render layout: nil
+  end
+
+  def josimar_a_bela_sintra
+  end
+
+  def josimar_santinho
+  end
+
+  def josimar_cosi
+  end
+
+end

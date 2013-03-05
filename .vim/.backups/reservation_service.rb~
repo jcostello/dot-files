@@ -1,0 +1,106 @@
+require 'legacy/reservation'
+module Redo
+  class ReservationService
+    attr_accessor :user, :restaurant_repo
+
+    include ::RCore::Echelon::EntityPublisher
+
+    def self.for_user(user_params, user = nil, user_repo = Redo::User)
+      user ||= user_repo.find_or_initialize_by_email(user_params[:email])
+
+      user.phone = user_params[:phone] if user_params[:phone].present?
+      user.birthday = Date.parse(user_params[:birthday]) if user_params[:birthday].present?
+      unless user.registered?
+        user.email      = user_params[:email]
+        user.first_name = user_params[:first_name]
+        user.last_name  = user_params[:last_name]
+      end
+
+      user.save
+
+      self.new(user)
+    end
+
+    def initialize(user, restaurant_repo = Redo::Restaurant)
+      @user = user
+      @restaurant_repo = restaurant_repo
+    end
+
+    def call(reservation_params, options = {})
+        require 'debugger'; debugger
+      if options[:check_duplicated]
+        restaurant = Redo::Restaurant.find(reservation_params[:restaurant_id])
+        reservation_date = reservation_params[:date]
+        reservation_time = Time.parse(reservation_params[:time])
+        reservation_time_range = ((reservation_time - 4.hours)..(reservation_time + 4.hours))
+        reservation = Redo::Reservation.pending_by(user.email, reservation_date, reservation_time_range).first
+        if reservation
+          reservation.errors.add("duplicated", "duplicated reservation")
+          return Response.new(user, reservation)
+        end
+      end
+      
+      create_reservation(reservation_params, options)
+    end
+
+    def cancel_and_create(reservation_params, options = {})
+      cancel_reservation(reservation_params)
+      create_reservation(reservation_params, options)
+    end
+
+    class Response < Struct.new(:user, :reservation)
+      def success?
+        reservation.persisted? && !reservation.errors.any?
+      end
+
+      def duplicated_reservation?
+        reservation.errors[:duplicated].present?
+      end
+
+      def errors
+        user.errors.any? ? user.errors : reservation.errors
+      end
+    end
+
+    private
+
+    def cancel_reservation(reservation_params)
+      reservation = Redo::Reservation.find(reservation_params[:id])
+      reservation.audit_context = 'customer'
+      reservation.cancel!
+    end
+
+    def create_reservation(reservation_params, options)
+      params = reservation_params.except(:id)
+
+      rid = params.delete(:restaurant_id)
+      restaurant = restaurant_repo.find(rid)
+
+      user.customer.country ||= restaurant.country_code
+      user.customer.region  ||= restaurant.region_code
+      user.customer.save
+
+      reservation = Legacy::Reservation.new(params, event_publisher)
+      reservation.origin   ||= 'restorando'
+      reservation.restaurant = restaurant
+      reservation.user = user
+      reservation.customer = user.customer
+      reservation.metadata = options.fetch(:metadata, {})
+
+      reservation.save if user.valid?
+
+      if reservation.persisted?
+        EventEmitter.trigger 'new.reservation', reservation, options
+      end
+
+      # If user was just created
+      if user.previous_changes[:id]
+        EventEmitter.trigger 'new.user', user
+        publish_event "user.new", user.as_json
+      end
+
+      Response.new(user, reservation)
+    end
+  end
+
+end

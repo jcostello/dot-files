@@ -1,0 +1,98 @@
+# encoding: utf-8
+
+module Redo
+  class RestaurantPhotoUploader < CarrierWave::Uploader::Base
+    include CarrierWave::MiniMagick
+
+    storage :file
+
+    after :remove, :delete_empty_upstream_dirs
+
+    def store_dir
+      "#{base_store_dir}/#{model.restaurant_id}/#{model.id}"
+    end
+
+    def base_store_dir
+      "u/restaurant_photos/#{(97 + (model.restaurant_id % 26)).chr}"
+    end
+
+    def delete_empty_upstream_dirs
+      path = ::File.expand_path(store_dir, root)
+      3.times do
+        Dir.delete(path) # fails if path not empty dir
+        path = ::File.basename(path)
+      end
+    rescue SystemCallError
+      true # nothing, the dir is not empty
+    end
+
+    def filename
+      tokens = model_file_name.split(".")
+      ext = tokens.pop
+      basename = tokens.join(".")
+      [basename.parameterize, ext.downcase].join(".")
+    end
+
+    def extension_white_list
+      %w(jpg jpeg gif png bmp)
+    end
+
+
+    process :convert => 'jpg'
+
+    version :best do
+      process :resize_to_fit => [700, 500]
+    end
+
+    version :square do
+      process :resize_to_fill => [80, 80]
+    end
+
+    version :big, :from_version => :best do
+      process :resize_to_fill => [260, 188]
+    end
+
+    version :thumb do
+      process :resize_to_fill => [120, 94]
+    end
+
+    version :medium do
+      process :resize_to_fit => [120, 200]
+    end
+
+    version :portrait1, :from_version => :best do
+      process :resize_to_fill => [463, 328]
+    end
+
+    version :portrait2, :from_version => :best do
+      process :resize_to_fill => [301, 129]
+    end
+
+    version :mobile_header do
+      process :crop_from_center => [640, 200]
+    end
+
+    version :desktop_header do
+      process :crop_from_center => [1024, 300]
+    end
+
+  private
+
+    def crop_from_center(width, height)
+      manipulate! do |img|
+        cols, rows = img[:dimensions]
+        img.combine_options do |cmd|
+          crop_width = cols < width ? cols : width
+          cmd.crop "#{crop_width}x#{height}-0-0!"
+          cmd.gravity 'Center'
+        end
+        img
+      end
+    end
+
+    def model_file_name
+      model.read_attribute(mounted_as) || original_filename
+    end
+
+  end
+end

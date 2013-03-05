@@ -1,0 +1,173 @@
+class ReservationsController < ApplicationController
+  helper_method :current_user_owns_reservation?
+
+  def availability
+    return head(422) unless params[:date].present?
+
+    availability_service = Redo::AvailabilityService.new(params[:restaurant_id])
+    availability_response = availability_service.call(params[:date], params[:diners],
+                                         campaigns: params[:campaigns])
+    publish_availability_event availability_response
+
+    if availability_response.success?
+      render :json => availability_response.to_hash
+    else
+      render :json => { :error => { :code => "InternalServerError" } },
+             :status => 500
+    end
+  end
+
+  def new
+    @restaurant = Redo::Restaurant.find(params[:restaurant_id])
+    @campaign = @restaurant.campaigns.find do |c|
+      c.id == params[:campaign_id].to_i
+    end
+
+    @flow = @campaign.present? ? :discount : :normal
+  end
+
+  def create
+    reservation_params = build_reservation_params
+    metadata = build_metadata
+    user_params = params[:user]
+
+    service = Redo::ReservationService.for_user(user_params, current_user)
+    service.set_user_session_for_publishing echelon_user_session
+
+    resp = if params[:duplicate]
+      service.call(reservation_params, sailthru_bid: cookies[:sailthru_bid], metadata: metadata, check_duplicated: false)
+    elsif params[:cancel_and_reserve]
+      service.cancel_and_create(reservation_params, sailthru_bid: cookies[:sailthru_bid], metadata: metadata)
+    else
+      service.call(reservation_params, sailthru_bid: cookies[:sailthru_bid], metadata: metadata, check_duplicated: true)
+    end
+
+    if resp.success?
+      clear_landing_information!
+      session[:last_reservation_id] = resp.reservation.id
+      session[:new_reservation] = true
+    end
+
+    handle_create_response(resp)
+  end
+
+  def show
+    @new_reservation = session[:new_reservation]
+    session.delete(:new_reservation)
+
+    @reservation = Redo::Reservation.find_with_secure_id(params[:id])
+
+    # This is used to pass referral information to signup through facebook.
+    # Use the referral information inside params, otherwise assume it is a shared link.
+    @referral_token = ReferralToken.initialize_from_params(params) ||
+                      ReferralToken.new(params[:id], :reservation, params[:strtgy])
+
+    if @reservation
+      @user = fetch_reservation_user!(@reservation)
+      @restaurant = @reservation.restaurant.becomes(Redo::Restaurant)
+      render
+    else
+      render_error(404)
+    end
+  end
+
+  def cancel
+    reservation = current_user.pending_reservations.find(params[:id])
+    if reservation
+      reservation.audit_context = 'customer'
+      reservation.cancel!
+      publish_interaction "reservation_cancel", reservation_id: reservation.id, user_id: current_user.id
+      render :json => {}
+    else
+      error = { :code => "NotFound" }
+      render :json => { :error => error },
+             :status => 404
+    end
+  end
+
+  def fetch_reservation_user!(reservation)
+    user = Redo::User.find_or_initialize_by_customer(reservation.customer)
+    user.save if user.new_record?
+    user
+  end
+
+  def current_user_owns_reservation?(reservation)
+    # If the user is annonymus identify him using last_reservation_id from session
+    (session[:last_reservation_id] == reservation.id) || (current_user && current_user.customer == reservation.customer)
+  end
+
+
+  def link_to_sailthru
+    reservation_tracking = Redo::ReservationTracking.find_or_initialize_by_secure_id(params[:id])
+
+    if (reservation = Redo::Reservation.find_with_secure_id(params[:id])) && reservation_tracking.new_record?
+      Redo::EventEmitter.trigger 'beacon.reservation', reservation, sailthru_bid: cookies[:sailthru_bid]
+      reservation_tracking.update_attributes!(reservation_id: reservation.id)
+
+      # Empty 1x1 pixel gif (beacon)
+      empty_gif_1x1px = '"GIF89a\001\000\001\000\200\000\000\000\000\000\000\000\000!\371\004\001\000\000\000\000,\000\000\000\000\001\000\001\000\000\002\002D\001\000;"'
+      render text: empty_gif_1x1px, content_type: 'image/gif'
+    else
+      render nothing: true, status: :not_found
+    end
+  end
+
+  private
+
+  def publish_availability_event(availability)
+    information = current_reservation_params.merge(restaurant_id: params[:restaurant_id])
+    information[:failed_reason] = availability.zfr_reason if availability.zfr_reason
+
+    interaction = availability.available? ? "availabiliy_query" : "failed_reservation_attempt"
+    publish_interaction interaction, information
+  end
+
+  def build_reservation_params
+    external_params = params.slice(:id, :restaurant_id, :comment, :campaign_id).symbolize_keys
+    reservation_params = current_reservation_params.merge(external_params)
+    reservation_params[:source_app] = 'web'
+    reservation_params[:origin]     = 'restorando'
+    reservation_params
+  end
+
+  def build_metadata
+    {
+      reservation_trail: params[:reservation_trail],
+      landing_params: landing_params,
+      landing_url: landing_url
+    }
+  end
+
+  def handle_create_response(service_response)
+    respond_to do |format|
+      format.html do
+        if service_response.success?
+          redirect_to reservation_path(service_response.reservation.secure_id)
+        elsif service_response.duplicated_reservation?
+          @reservation = service_response.reservation
+          render :existing
+        else
+          @restaurant = service_response.reservation.restaurant
+          @campaign = @restaurant.campaigns.find do |c|
+            c.id == params[:campaign_id].to_i
+          end
+          @flow = @campaign.present? ? :discount : :normal
+
+          @error_msg = service_response.errors.full_messages.first
+          render :new
+        end
+      end
+
+      format.json do
+        if service_response.success?
+          render json: {
+            reservation_id: service_response.reservation.secure_id,
+            url: reservation_path(service_response.reservation.secure_id)
+          }
+        else
+          render text: service_response.errors.full_messages.first, status: :unprocessable_entity
+        end
+      end
+    end
+  end
+end
