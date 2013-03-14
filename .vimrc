@@ -103,13 +103,11 @@
   let g:neocomplcache_enable_at_startup = 1
   let g:neosnippet#snippets_directory='~/.vim/snippets'
   let g:neosnippet#enable_snipmate_compatibility = 1
-
   
   " For snippet_complete marker.
   if has('conceal')
     set conceallevel=2 concealcursor=i
   endif"
-
   
  " Ctags {
     set tags+=./tags
