@@ -1,9 +1,0 @@
-restaurants = Redo::Restaurant.where(region_code: %w(rio-de-janeiro belo-horizonte bogota), 
-                                     status: Redo::Restaurant::STATUS_PROSPECT)
-
-restaurants.each do |restaurant|
-  restaurant.update_attributes(status: Redo::Restaurant::STATUS_SCHUMACHER)
-  printf "."
-end
-
-printf "total updated: #{restaurants.count}"

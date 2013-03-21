@@ -1,0 +1,8 @@
+*
+.vim/.undo/*
+
+!.vim/*
+!.vimrc
+!.gitignore
+!.tmux.conf
+
