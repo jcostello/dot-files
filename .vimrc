@@ -1,49 +1,46 @@
 set nocompatible
 
-filetype off " required
-
 " VUNDLE
 
-set rtp+=~/.vim/bundle/vundle/
-call vundle#rc() " let Vundle manage Vundle
+  filetype off " required
 
-" required
-Bundle 'gmarik/vundle' 
+  set rtp+=~/.vim/bundle/vundle/
+  call vundle#rc() " let Vundle manage Vundle
 
-" Command-T
-Bundle 'Command-T'                
-" Ultisnips
-Bundle 'SirVer/ultisnips'         
-" Syntastic
-Bundle 'scrooloose/syntastic'
+  " required
+  Bundle 'gmarik/vundle' 
+  " Command-T
+  Bundle 'Command-T'                
+  " Syntastic
+  Bundle 'scrooloose/syntastic'
+  " Vim Ruby
+  Bundle 'vim-ruby/vim-ruby'
 
-filetype plugin indent on " required
+  Bundle 'ervandew/supertab'
+
+  Bundle 'SirVer/ultisnips'
+
+  Bundle 'honza/vim-snippets'
+  
+  Bundle 'jelera/vim-javascript-syntax'
+
+  Bundle 'mileszs/ack.vim'
+
+  filetype plugin indent on " required
 
 " END VUNDLE
 
   syntax enable
+  let g:solarized_termcolors=256
   set background=dark
-  colorscheme jellybeans
+  colorscheme solarized
   
+  filetype on           " Enable filetype detection
+  filetype indent on    " Enable filetype-specific indenting
+  filetype plugin on    " Enable filetype-specific plugins
 
-  filetype plugin on
+" Basics
 
-  autocmd FileType python set omnifunc=pythoncomplete#Complete
-  autocmd FileType javascript set omnifunc=javascriptcomplete#CompleteJS
-  autocmd FileType html set omnifunc=htmlcomplete#CompleteTags
-  autocmd FileType css set omnifunc=csscomplete#CompleteCSS
-  autocmd FileType xml set omnifunc=xmlcomplete#CompleteTags
-  autocmd FileType php set omnifunc=phpcomplete#CompletePHP
-  autocmd FileType c set omnifunc=ccomplete#Complete
-  autocmd FileType ruby,eruby set omnifunc=rubycomplete#Complete
-
-" whitespaces
-  autocmd Filetype html setlocal ts=2 sts=2 sw=2
-  autocmd Filetype ruby setlocal ts=2 sts=2 sw=2
-  autocmd Filetype javascript setlocal ts=4 sts=4 sw=4
-  autocmd Filetype cpp setlocal ts=4 sts=4 sw=4
-
-" Basics {
   set modelines=0
   set shiftwidth=2
   set smarttab      " insert tabs on the start of a line according to shiftwidth, not tabstop
@@ -62,9 +59,10 @@ filetype plugin indent on " required
   set backspace=indent,eol,start
   set laststatus=2
   set relativenumber
-" }
-"
-" Search {
+  set autoread
+
+" Search
+
   set ignorecase
   set smartcase
   set gdefault
@@ -76,9 +74,9 @@ filetype plugin indent on " required
   vnoremap <tab> %
   nnoremap / /\v
   vnoremap / /\v
-" }
 
-" Mappings {
+" Mappings
+
   let mapleader = ","
 
   nnoremap <up> <nop>
@@ -104,29 +102,45 @@ filetype plugin indent on " required
   nnoremap <C-j> <C-w>j
   nnoremap <C-k> <C-w>k
   nnoremap <C-l> <C-w>l
-" }
 
-" Setting up the directories {
-    set nobackup
-    set noswapfile
-    set history=1000         " remember more commands and search history
-    if has('persistent_undo')
-      set undofile                "so is persistent undo ...
-      set undodir=~/.vim/.undo
-      set undolevels=1000         "maximum number of changes that can be undone
-      set undoreload=10000        "maximum number lines to save for undo on a buffer reload
+" Setting up the directories
+"
+  set nobackup
+  set noswapfile
+  set history=1000         " remember more commands and search history
+  if has('persistent_undo')
+    set undofile                "so is persistent undo ...
+    set undodir=~/.vim/.undo
+    set undolevels=1000         "maximum number of changes that can be undone
+    set undoreload=10000        "maximum number lines to save for undo on a buffer reload
+  endif
+
+" Plugins 
+
+  " Command-t
+
+    set wildignore+=tmp/**
+  
+  " Ctags
+    " ,rt -> regenerate tags, including objects/functions from installed gems
+    " http://effectif.com/vim/using-ctags-with-bundler-gems
+    map <leader>rt :!ctags --extra=+f --languages=-javascript --exclude=.git --exclude=log -R -f ./.tags <CR><C-M>
+    
+    " set tags-lookup-path
+    set tags=.tags
+
+    " do not regard "-" as word seperator (css Files!)
+    set iskeyword+=-
+
+  " Command-T
+    nnoremap <silent> <c-p> :CommandT<CR>
+    nnoremap <silent> <c-b> :CommandTBuffer<CR>
+    noremap <F5> :CommandTFlush<CR>
+
+    if &term =~ "xterm" || &term =~ "screen"
+      let g:CommandTCancelMap = ['<ESC>', '<C-c>']
     endif
-" }
 
-" Plugins {
-
-  " Snippets {
-    let g:UltiSnipsExpandTrigger="<TAB>"
-    let g:UltiSnipsJumpForwardTrigger="<TAB>"
-    let g:UltiSnipsJumpBackwardTrigger="<S-TAB>"
-    let g:UltiSnipsListSnippets="<c-e>"
-  " }
- 
   " Syntastic
     let g:syntastic_error_symbol='✗'
     let g:syntastic_warning_symbol='⚠'
