@@ -1,39 +1,63 @@
 set nocompatible
 
 " VUNDLE
+  call plug#begin('~/.vim/plugged')
 
-  filetype off " required
+  " Color schema
+  Plug 'dracula/vim', { 'as': 'dracula' }
 
-  set rtp+=~/.vim/bundle/vundle/
-  call vundle#rc() " let Vundle manage Vundle
+  " Nerd tree
+  Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }	
 
-  " required
-  Bundle 'gmarik/vundle' 
-  " Command-T
-  Bundle 'Command-T'                
+  " Fuzzy finder
+  Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+  Plug 'junegunn/fzf.vim'
+
+  " Vim ruby
+  Plug 'vim-ruby/vim-ruby', { 'for': 'ruby' }
+
+  " Bottom bar
+  Plug 'itchyny/lightline.vim'
+
   " Syntastic
-  Bundle 'scrooloose/syntastic'
-  " Vim Ruby
-  Bundle 'vim-ruby/vim-ruby'
-
-  Bundle 'ervandew/supertab'
-
-  Bundle 'SirVer/ultisnips'
-
-  Bundle 'honza/vim-snippets'
+  Plug 'w0rp/ale'
   
-  Bundle 'jelera/vim-javascript-syntax'
+  " Paste helper
+  Plug 'roxma/vim-paste-easy'
+ 
+  " Closes {} do end
+  Plug 'tpope/vim-endwise'
 
-  Bundle 'mileszs/ack.vim'
+  " Lenguage collection
+  Plug 'sheerun/vim-polyglot'
 
-  filetype plugin indent on " required
+  " Ctags
+  Plug 'ludovicchabant/vim-gutentags'
 
+  " Ack
+  Plug 'mileszs/ack.vim'
+
+
+  if has('nvim')
+    Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+  else
+    Plug 'Shougo/deoplete.nvim'
+    Plug 'roxma/nvim-yarp'
+    Plug 'roxma/vim-hug-neovim-rpc'
+  endif
+  let g:deoplete#enable_at_startup = 1
+
+  " Track the engine.
+  Plug 'SirVer/ultisnips'
+
+  " Snippets are separated from the engine. Add this if you want them:
+  Plug 'honza/vim-snippets'
+
+  call plug#end()
 " END VUNDLE
 
-  syntax enable
-  let g:solarized_termcolors=256
-  set background=dark
-  colorscheme solarized
+  syntax on
+  color dracula
   
   filetype on           " Enable filetype detection
   filetype indent on    " Enable filetype-specific indenting
@@ -60,6 +84,16 @@ set nocompatible
   set laststatus=2
   set relativenumber
   set autoread
+  set noeb vb t_vb=     "No Bell
+
+" Clipboard
+
+  set pastetoggle=<F10>
+  inoremap <C-v> <F10><C-r>+<F10>
+
+  vnoremap <C-c> "+y
+
+  set clipboard=unnamedplus
 
 " Search
 
@@ -104,7 +138,7 @@ set nocompatible
   nnoremap <C-l> <C-w>l
 
 " Setting up the directories
-"
+
   set nobackup
   set noswapfile
   set history=1000         " remember more commands and search history
@@ -115,35 +149,45 @@ set nocompatible
     set undoreload=10000        "maximum number lines to save for undo on a buffer reload
   endif
 
+" GUI
+
+  if has("gui_running")
+    set lines=999 columns=999
+    set guioptions-=T  "remove toolbar
+    set guioptions-=r  "remove right-hand scroll bar
+    set guioptions-=L  "remove left-hand scroll bar
+    set guioptions-=m
+  endif
+
 " Plugins 
 
-  " Command-t
+  " Fzf
+  let g:fzf_action = {
+    \ 'ctrl-t': 'tab split',
+    \ 'ctrl-h': 'split',
+    \ 'ctrl-v': 'vsplit' }
 
-    set wildignore+=tmp/**
+  nnoremap <c-p> :Files<cr>
+  nnoremap <c-b> :Buffers<cr>
+
+  " Nerdtree
   
-  " Ctags
-    " ,rt -> regenerate tags, including objects/functions from installed gems
-    " http://effectif.com/vim/using-ctags-with-bundler-gems
-    map <leader>rt :!ctags --extra=+f --languages=-javascript --exclude=.git --exclude=log -R -f ./.tags <CR><C-M>
-    
-    " set tags-lookup-path
-    set tags=.tags
+  map <C-n> :NERDTreeToggle<CR>
+  map <C-m> :NERDTreeFind<CR>
+  let NERDTreeShowHidden=1
 
-    " do not regard "-" as word seperator (css Files!)
-    set iskeyword+=-
+  " Ale
+  let g:ale_sign_warning = '▲'
+  let g:ale_sign_error = '✗'
+  highlight link ALEWarningSign String
+  highlight link ALEErrorSign Title
 
-  " Command-T
-    nnoremap <silent> <c-p> :CommandT<CR>
-    nnoremap <silent> <c-b> :CommandTBuffer<CR>
-    noremap <F5> :CommandTFlush<CR>
+  let g:UltiSnipsExpandTrigger="<tab>"
+  let g:UltiSnipsJumpForwardTrigger="<c-b>"
+  let g:UltiSnipsJumpBackwardTrigger="<c-z>"
 
-    if &term =~ "xterm" || &term =~ "screen"
-      let g:CommandTCancelMap = ['<ESC>', '<C-c>']
-    endif
+  "Ack
 
-  " Syntastic
-    let g:syntastic_error_symbol='✗'
-    let g:syntastic_warning_symbol='⚠'
-    let g:syntastic_enable_highlighting=0
-    let g:syntastic_auto_loc_list=1
-    let g:syntastic_loc_list_height=5
+  let g:ack_autoclose = 1
+  let g:ackhighlight = 1
+  
