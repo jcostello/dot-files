@@ -7,7 +7,7 @@ set nocompatible
   Plug 'dracula/vim', { 'as': 'dracula' }
 
   " Nerd tree
-  Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }	
+  Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }	
 
   " Fuzzy finder
   Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
@@ -33,7 +33,11 @@ set nocompatible
   Plug 'ludovicchabant/vim-gutentags'
 
   " Commenter
-  Plug 'scrooloose/nerdcommenter'
+  Plug 'tpope/vim-commentary'
+
+  Plug 'wincent/ferret'
+
+  Plug 'itchyny/lightline.vim'
 
   call plug#end()
 " END VUNDLE
@@ -66,6 +70,7 @@ set nocompatible
   set laststatus=2
   set relativenumber
   set autoread
+  set splitright        "Split to the right
   set noeb vb t_vb=     "No Bell
 
 " Clipboard
@@ -89,7 +94,12 @@ set nocompatible
   nnoremap <tab> %
   vnoremap <tab> %
   nnoremap / /\v
-  vnoremap / /\v
+  vnoremap / y /\v <C-R>"
+
+  cnoreabbrev wq w<bar>bd
+  cnoreabbrev q bd
+
+  cnoreabbrev install PlugClean<bar>PlugInstall<bar>PlugUpdate
 
 " Mappings
 
@@ -111,8 +121,9 @@ set nocompatible
   nnoremap <leader>w <C-w>v<C-w>l
   nnoremap <leader>q <C-w>q
   " Quickly edit/reload the vimrc file
-  nmap <silent> <leader>vo :e $MYVIMRC<CR>
+  nmap <silent> <leader>vo :vsp $MYVIMRC<CR>
   nmap <silent> <leader>vl :so $MYVIMRC<CR>
+
 
   nnoremap <C-h> <C-w>h
   nnoremap <C-j> <C-w>j
@@ -120,6 +131,8 @@ set nocompatible
   nnoremap <C-l> <C-w>l
 
   map <esc> :noh<cr>
+
+  map <c-tab> :bprevious<cr>
 " Setting up the directories
 
   set nobackup
@@ -154,8 +167,8 @@ set nocompatible
 
   " Nerdtree
   
-  map <C-n> :NERDTreeToggle<CR>
-  map <C-m> :NERDTreeFind<CR>
+  nmap <C-N> :NERDTreeToggle<CR>
+  nmap <C-Enter> :NERDTreeFind<CR>
   let NERDTreeShowHidden=1
 
   " Ale
@@ -167,3 +180,8 @@ set nocompatible
   let g:UltiSnipsExpandTrigger="<tab>"
   let g:UltiSnipsJumpForwardTrigger="<c-b>"
   let g:UltiSnipsJumpBackwardTrigger="<c-z>"
+
+  " ACK
+  
+  vmap <C-_> y :Ack <C-R>"
+
