@@ -32,12 +32,8 @@ set nocompatible
   " Ctags
   Plug 'ludovicchabant/vim-gutentags'
 
-  " Ack
-  Plug 'dyng/ctrlsf.vim'
-  
+  " Commenter
   Plug 'scrooloose/nerdcommenter'
-
-  Plug 'terryma/vim-multiple-cursors'
 
   call plug#end()
 " END VUNDLE
@@ -123,6 +119,7 @@ set nocompatible
   nnoremap <C-k> <C-w>k
   nnoremap <C-l> <C-w>l
 
+  map <esc> :noh<cr>
 " Setting up the directories
 
   set nobackup
@@ -136,11 +133,7 @@ set nocompatible
   endif
 
 " GUI
-  
-  if exists('g:GuiLoaded')
-    Guifont Ubuntu Mono:h12
-  endif
-  
+
   if has("gui_running")
     set lines=999 columns=999
     set guioptions-=T  "remove toolbar
@@ -174,9 +167,3 @@ set nocompatible
   let g:UltiSnipsExpandTrigger="<tab>"
   let g:UltiSnipsJumpForwardTrigger="<c-b>"
   let g:UltiSnipsJumpBackwardTrigger="<c-z>"
-
-  "CtrlF
-
-  nmap <C-Bslash> <Plug>CtrlSFPrompt
-  vmap <C-Bslash> <Plug>CtrlSFVwordPath
-  
