@@ -39,6 +39,17 @@ set nocompatible
 
   Plug 'itchyny/lightline.vim'
 
+  Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' } 
+  let g:deoplete#enable_at_startup = 1
+
+  " Track the engine.
+  Plug 'SirVer/ultisnips'
+
+  " Snippets are separated from the engine. Add this if you want them:
+  Plug 'honza/vim-snippets'
+
+  Plug 'janko-m/vim-test'
+
   call plug#end()
 " END VUNDLE
 
@@ -96,9 +107,6 @@ set nocompatible
   nnoremap / /\v
   vnoremap / y /\v <C-R>"
 
-  cnoreabbrev wq w<bar>bd
-  cnoreabbrev q bd
-
   cnoreabbrev install PlugClean<bar>PlugInstall<bar>PlugUpdate
 
 " Mappings
@@ -131,9 +139,6 @@ set nocompatible
   nnoremap <C-l> <C-w>l
 
   map <esc> :noh<cr>
-
-  map <c-tab> :bprevious<cr>
-" Setting up the directories
 
   set nobackup
   set noswapfile
@@ -174,14 +179,33 @@ set nocompatible
   " Ale
   let g:ale_sign_warning = '▲'
   let g:ale_sign_error = '✗'
+  let g:ale_fixers = {'javascript': ['prettier', 'eslint'], 'ruby': ['rubocop']}
+  let g:ale_linters = {'javascript': ['eslint'], 'ruby': ['rubocop']}
+  let g:ale_fix_on_save = 1
+
   highlight link ALEWarningSign String
   highlight link ALEErrorSign Title
-
-  let g:UltiSnipsExpandTrigger="<tab>"
-  let g:UltiSnipsJumpForwardTrigger="<c-b>"
-  let g:UltiSnipsJumpBackwardTrigger="<c-z>"
-
   " ACK
   
   vmap <C-_> y :Ack <C-R>"
 
+  function! GoBackToRecentBuffer()
+    let startName = bufname('%')
+    while 1
+      exe "normal! \<c-o>"
+      let nowName = bufname('%')
+      if nowName != startName
+        break
+      endif
+    endwhile
+  endfunction
+
+  nnoremap <silent> <C-tab> :call GoBackToRecentBuffer()<Enter>
+
+
+  function! DockerTransform(cmd) abort
+    " return test command wrapped in docker stuff
+  endfunction
+
+  let g:test#custom_transformations = {'docker': function('DockerTransform')}
+  let g:test#transformation = 'docker'
