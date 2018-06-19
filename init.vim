@@ -3,11 +3,8 @@ set nocompatible
 " VUNDLE
   call plug#begin('~/.vim/plugged')
 
-  " Color schema
-  Plug 'dracula/vim', { 'as': 'dracula' }
-
   " Nerd tree
-  Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }	
+  Plug 'scrooloose/nerdtree'
 
   " Fuzzy finder
   Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
@@ -18,8 +15,10 @@ set nocompatible
   " Vim rails
   Plug 'tpope/vim-rails', { 'for': 'ruby' }
 
+  " Vim Slim
   Plug 'slim-template/vim-slim', { 'for': 'slim' }
 
+  " Vim Javascript
   Plug 'pangloss/vim-javascript', { 'for': 'javascript' }
 
   " Syntastic
@@ -29,32 +28,35 @@ set nocompatible
   Plug 'tpope/vim-endwise'
   Plug 'jiangmiao/auto-pairs'
 
-  " Ctags
-  Plug 'ludovicchabant/vim-gutentags'
-
   " Commenter
   Plug 'tpope/vim-commentary'
 
+  " Global finder
   Plug 'wincent/ferret'
 
-  Plug 'itchyny/lightline.vim'
-
+  " Autocomplete
   Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' } 
   let g:deoplete#enable_at_startup = 1
 
-  " Track the engine.
+  " Snippet engine
   Plug 'SirVer/ultisnips'
 
-  " Snippets are separated from the engine. Add this if you want them:
+  " Snippets 
   Plug 'honza/vim-snippets'
 
+  " Ctags
+  Plug 'jsfaint/gen_tags.vim'
+
+  " Test runner
   Plug 'janko-m/vim-test'
+
+  Plug 'flazz/vim-colorschemes'
 
   call plug#end()
 " END VUNDLE
 
   syntax on
-  color dracula
+  colorscheme dracula
   
   filetype on           " Enable filetype detection
   filetype indent on    " Enable filetype-specific indenting
@@ -107,8 +109,6 @@ set nocompatible
   nnoremap / /\v
   vnoremap / y /\v <C-R>"
 
-  cnoreabbrev install PlugClean<bar>PlugInstall<bar>PlugUpdate
-
 " Mappings
 
   let mapleader = ","
@@ -132,13 +132,15 @@ set nocompatible
   nmap <silent> <leader>vo :vsp $MYVIMRC<CR>
   nmap <silent> <leader>vl :so $MYVIMRC<CR>
 
-
   nnoremap <C-h> <C-w>h
   nnoremap <C-j> <C-w>j
   nnoremap <C-k> <C-w>k
   nnoremap <C-l> <C-w>l
 
   map <esc> :noh<cr>
+
+
+" Undo
 
   set nobackup
   set noswapfile
@@ -161,6 +163,9 @@ set nocompatible
   endif
 
 " Plugins 
+
+  " Plug Abrev
+  " cnoreabbrev install PlugClean<bar>PlugInstall<bar>PlugUpdate
 
   " Fzf
   let g:fzf_action = {
@@ -185,27 +190,16 @@ set nocompatible
 
   highlight link ALEWarningSign String
   highlight link ALEErrorSign Title
-  " ACK
   
+  " Ctags
+  let g:loaded_gentags#gtags=1
+  let g:gen_tags#ctags_auto_gen=1
+  let g:gen_tags#statusline=1
+  let g:gen_tags#use_cache_dir=0
+  let g:gen_tags#blacklist = split(glob('~/.vim/plugged/*'))
+  let g:gen_tags#blacklist += split(glob('~/.vim/*'))
+  let g:gen_tags#blacklist += split(glob('./app/assets/stylesheets/*'))
+  let g:gen_tags#blacklist += split(glob('./vendor/*'))
+
+  " ACK
   vmap <C-_> y :Ack <C-R>"
-
-  function! GoBackToRecentBuffer()
-    let startName = bufname('%')
-    while 1
-      exe "normal! \<c-o>"
-      let nowName = bufname('%')
-      if nowName != startName
-        break
-      endif
-    endwhile
-  endfunction
-
-  nnoremap <silent> <C-tab> :call GoBackToRecentBuffer()<Enter>
-
-
-  function! DockerTransform(cmd) abort
-    " return test command wrapped in docker stuff
-  endfunction
-
-  let g:test#custom_transformations = {'docker': function('DockerTransform')}
-  let g:test#transformation = 'docker'
