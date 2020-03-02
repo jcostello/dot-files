@@ -1,1 +1,1 @@
-Guifont Ubuntu Mono:h12
+set guifont=Ubuntu\ Mono:h11
