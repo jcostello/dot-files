@@ -6,33 +6,14 @@ set nocompatible
   " Colors
   Plug 'flazz/vim-colorschemes'
 
-  " Nerd tree
-  Plug 'scrooloose/nerdtree'
-
   " Fuzzy finder
   Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 
   " Autocomplete 
   Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
-  " Vim ruby
-  " Plug 'vim-ruby/vim-ruby', { 'for': 'ruby' }
-
-  " Vim rails
-  " Plug 'tpope/vim-rails', { 'for': 'ruby' }
-
   " Vim Slim
   Plug 'slim-template/vim-slim', { 'for': 'slim' }
-
-  " Vim Javascript
-  " Plug 'pangloss/vim-javascript', { 'for': 'javascript' }
-
-  " Syntastic
-  " Plug 'w0rp/ale'
-  
-  " Closes {} do end
-  Plug 'tpope/vim-endwise'
-  Plug 'jiangmiao/auto-pairs'
 
   " JS & React
   Plug 'yuezk/vim-js'
@@ -47,8 +28,23 @@ set nocompatible
   " Global finder
   Plug 'wincent/ferret'
 
-  " Bar
-  Plug 'vim-airline/vim-airline'
+  " Light Bar
+  Plug 'itchyny/lightline.vim'
+
+  " GgScript
+  Plug 'calviken/vim-gdscript3'
+
+  let g:coc_global_extensions = [
+      \'coc-tsserver',
+      \'coc-snippets',
+      \'coc-pairs',
+      \'coc-lists',
+      \'coc-json',
+      \'coc-html',
+      \'coc-prettier',
+      \'coc-explorer',
+      \'coc-css'
+      \]
 
   call plug#end()
 " END VUNDLE
@@ -180,7 +176,7 @@ set nocompatible
 
   " Nerdtree
   
-  nmap <C-N> :NERDTreeToggle<CR>
+  nmap <C-N> :CocCommand explorer<CR>
   nmap <C-Enter> :NERDTreeFind<CR>
   let NERDTreeShowHidden=1
 
@@ -188,14 +184,16 @@ set nocompatible
   " let g:ale_sign_warning = '▲'
   " let g:ale_sign_error = '✗'
   " let g:ale_fixers = {'javascript': ['prettier', 'eslint'], 'ruby': ['rubocop']}
-  " let g:ale_linters = {'javascript': ['eslint'], 'ruby': ['rubocop']}
-  " let g:ale_fix_on_save = 0
+  " let g:ale_linters = {'javascript': ['eslint'], 'ruby': ['rubocop'], 'scss': ['prettier'], 'html': ['prettier']}
+  " let g:ale_fix_on_save = 1
 
   " highlight link ALEWarningSign String
   " highlight link ALEErrorSign Title
-  
+
+
   " ACK
-  vmap <C-_> y :Ack <C-R>"
+  vnoremap <C-F> <nop>
+  vnoremap <C-F> y:Ack <C-r>=fnameescape(@")<CR><CR>
 
   " if hidden is not set, TextEdit might fail.
   set hidden
@@ -326,6 +324,8 @@ set nocompatible
   " Resume latest coc list
   nnoremap <silent> <space>p  :<C-u>CocListResume<CR>
 
+  nnoremap <C-b> :CocList buffers<CR>
+
   " Use <C-j> for jump to next placeholder, it's default of coc.nvim
   let g:coc_snippet_next = '<c-j>'
 
@@ -344,3 +344,7 @@ set nocompatible
   endfunction
 
   let g:coc_snippet_next = '<tab>'
+
+  command! -nargs=0 Prettier :CocCommand prettier.formatFile
+
+  autocmd BufWritePost * :Prettier
